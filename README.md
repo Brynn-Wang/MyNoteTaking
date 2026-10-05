@@ -21,11 +21,11 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 
 ## Deploy to Vercel
 
-Deploy this repository as a Python project. All requests are rewritten to
-`api/index.py`, which serves both the SPA and `/api/notes` endpoints. When
-`VERCEL` is set, SQLite uses `/tmp/app.db` and does not create directories.
-Vercel's `/tmp` filesystem is ephemeral, so notes are not durable across
-serverless instance replacement; use a persistent database for production
-data retention.
+Import this repository as a Flask project. Vercel detects the Flask app in
+`src/main.py` and routes requests to it directly; no catch-all rewrite is
+needed. The app serves the SPA and `/api/notes` endpoints. When `VERCEL` is
+set, SQLite uses `/tmp/app.db` and does not create directories. Vercel's
+`/tmp` filesystem is ephemeral, so notes are not durable across serverless
+instance replacement; use a persistent database for production data retention.
 
 Set `OPENROUTER_API_KEY` as a Vercel environment variable to enable translation.
