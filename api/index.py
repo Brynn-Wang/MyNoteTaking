@@ -16,12 +16,16 @@ class VercelPathMiddleware:
         self.wsgi_app = wsgi_app
 
     def _get_request_path(self, environ):
-        for key in ('HTTP_X_ORIGINAL_URI', 'RAW_URI', 'REQUEST_URI', 'HTTP_X_FORWARDED_URI', 'HTTP_X_MATCHED_PATH'):
+        for key in ('HTTP_X_NOTETAKER_PATH', 'HTTP_X_ORIGINAL_URI', 'HTTP_X_FORWARDED_URI', 'HTTP_X_MATCHED_PATH', 'RAW_URI', 'REQUEST_URI'):
             value = environ.get(key)
             if not value:
                 continue
             path = urlsplit(value).path if key in {'RAW_URI', 'REQUEST_URI', 'HTTP_X_FORWARDED_URI', 'HTTP_X_ORIGINAL_URI'} else value.split('?', 1)[0]
-            if path and path not in ('/', '/api'):
+            if key == 'HTTP_X_NOTETAKER_PATH':
+                if path.startswith('/api/'):
+                    return path
+                continue
+            if path and path not in ('/', '/api', '/api/index.py'):
                 return path
         return None
 
