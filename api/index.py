@@ -16,9 +16,9 @@ class VercelPathMiddleware:
 
     def __call__(self, environ, start_response):
         matched_path = (
-            environ.get('HTTP_X_MATCHED_PATH')
-            or environ.get('HTTP_X_FORWARDED_URI')
+            environ.get('HTTP_X_FORWARDED_URI')
             or environ.get('HTTP_X_ORIGINAL_URI')
+            or environ.get('HTTP_X_MATCHED_PATH')
         )
         if matched_path:
             # 剥离 URL 问号后的查询参数，确保路由精准匹配
