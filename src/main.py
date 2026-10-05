@@ -23,7 +23,14 @@ app.register_blueprint(note_bp, url_prefix='/api')
 ROOT_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 DB_PATH = os.path.join(ROOT_DIR, 'database', 'app.db')
 # ensure database directory exists
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+
+if os.environ.get('VERCEL'):
+    DB_DIR = '/tmp'
+    DB_PATH = '/tmp/app.db'
+else:
+    DB_DIR = os.path.dirname(DB_PATH)
+    os.makedirs(DB_DIR, exist_ok=True)
+
 
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_PATH}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
