@@ -604,7 +604,15 @@
                             target_lang: document.getElementById('targetLanguage').value
                         })
                     });
-                    const result = await response.json();
+                    const responseText = await response.text();
+                    let result;
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch {
+                        const contentType = response.headers.get('content-type') || 'unknown content type';
+                        const preview = this.escapeHtml(responseText.trim().slice(0, 180));
+                        throw new Error(`HTTP ${response.status} (${contentType}): ${preview || 'Empty response'}`);
+                    }
                     if (!response.ok) throw new Error(result.error || 'Failed to translate note');
 
                     document.getElementById('noteTitle').value = result.title;
