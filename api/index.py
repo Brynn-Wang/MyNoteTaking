@@ -16,7 +16,7 @@ class VercelPathMiddleware:
         self.wsgi_app = wsgi_app
 
     def _get_request_path(self, environ):
-        for key in ('RAW_URI', 'REQUEST_URI', 'HTTP_X_FORWARDED_URI', 'HTTP_X_ORIGINAL_URI', 'HTTP_X_MATCHED_PATH'):
+        for key in ('HTTP_X_ORIGINAL_URI', 'RAW_URI', 'REQUEST_URI', 'HTTP_X_FORWARDED_URI', 'HTTP_X_MATCHED_PATH'):
             value = environ.get(key)
             if not value:
                 continue
