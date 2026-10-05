@@ -1,715 +1,359 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NoteTaker - Your Personal Note Manager</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 30px;
-            flex: 1;
-        }
-
-        .sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-            height: fit-content;
-        }
-
-        .note-editor {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 10px;
-            font-size: 14px;
-            margin-bottom: 20px;
-            transition: border-color 0.3s ease;
-        }
-
-        .search-box:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .new-note-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .new-note-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .notes-list {
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .note-item {
-            padding: 15px;
-            border: 2px solid transparent;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
-
-        .note-item:hover {
-            border-color: #667eea;
-            transform: translateX(5px);
-        }
-
-        .note-item.active {
-            border-color: #667eea;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        }
-
-        .note-title {
-            font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 5px;
-            color: #333;
-        }
-
-        .note-preview {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .note-date {
-            font-size: 12px;
-            color: #999;
-            margin-top: 5px;
-        }
-
-        .editor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .editor-title {
-            font-size: 1.5rem;
-            color: #333;
-        }
-
-        .editor-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .btn-save {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-save:hover {
-            background: #218838;
-            transform: translateY(-1px);
-        }
-
-        .btn-delete {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-delete:hover {
-            background: #c82333;
-            transform: translateY(-1px);
-        }
-
-        .target-language {
-            padding: 8px 10px;
-            border: 1px solid #ced4da;
-            border-radius: 8px;
-            background: white;
-            color: #333;
-            font-size: 14px;
-        }
-
-        .btn-translate {
-            background: #176b87;
-            color: white;
-        }
-
-        .btn-translate:hover {
-            background: #12566d;
-            transform: translateY(-1px);
-        }
-
-        .btn:disabled {
-            cursor: wait;
-            opacity: 0.65;
-            transform: none;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .form-textarea {
-            width: 100%;
-            min-height: 300px;
-            padding: 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 10px;
-            font-size: 16px;
-            font-family: inherit;
-            resize: vertical;
-            transition: border-color 0.3s ease;
-            line-height: 1.6;
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-
-        .empty-state h3 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-        }
-
-        .empty-state p {
-            font-size: 1rem;
-            opacity: 0.8;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #f5c6cb;
-        }
-
-        .success {
-            background: #d4edda;
-            color: #155724;
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #c3e6cb;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .container {
-                padding: 15px;
-            }
-            
-            .sidebar, .note-editor {
-                padding: 20px;
-            }
-        }
-
-        /* Custom Scrollbar */
-        .notes-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .notes-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-
-        .notes-list::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 3px;
-        }
-
-        .notes-list::-webkit-scrollbar-thumb:hover {
-            background: #5a6fd8;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#5b5bd6">
+  <title>NoteTaker</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #20213a;
+      background: #f4f5fb;
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 9% 5%, rgba(154, 139, 255, .22), transparent 34rem),
+        radial-gradient(ellipse at 94% 95%, rgba(112, 179, 255, .18), transparent 32rem),
+        #f5f6fc;
+    }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    .app-shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 42px 0 48px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark {
+      display: grid; width: 46px; height: 46px; place-items: center; border-radius: 15px;
+      color: white; background: linear-gradient(140deg, #7971ec, #5168d9);
+      box-shadow: 0 10px 22px rgba(91, 91, 214, .25);
+    }
+    .brand-mark svg { width: 23px; height: 23px; }
+    h1 { margin: 0; font-size: 25px; letter-spacing: -.7px; }
+    .tagline { margin: 4px 0 0; color: #85879c; font-size: 13px; }
+    .workspace {
+      display: grid; grid-template-columns: 310px minmax(0, 1fr); min-height: 690px;
+      overflow: hidden; border: 1px solid rgba(223, 225, 239, .85); border-radius: 24px;
+      background: rgba(255,255,255,.88); box-shadow: 0 24px 70px rgba(47, 51, 104, .10);
+      backdrop-filter: blur(16px);
+    }
+    .sidebar { display: flex; flex-direction: column; min-width: 0; padding: 24px 18px; border-right: 1px solid #ececf4; }
+    .sidebar-heading { display: flex; align-items: center; justify-content: space-between; margin: 0 3px 17px; }
+    .sidebar-heading h2 { margin: 0; color: #666981; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; }
+    .note-count { color: #999bb0; font-size: 12px; }
+    .new-button, .primary-button {
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 0;
+      color: #fff; background: linear-gradient(115deg, #7168e8, #5269d8);
+      box-shadow: 0 8px 16px rgba(94, 94, 216, .20); transition: transform .16s, box-shadow .16s;
+    }
+    .new-button { width: 100%; min-height: 43px; margin-bottom: 16px; border-radius: 12px; font-weight: 650; }
+    .new-button:hover, .primary-button:hover { transform: translateY(-1px); box-shadow: 0 11px 20px rgba(94, 94, 216, .27); }
+    .search-wrap { position: relative; margin-bottom: 17px; }
+    .search-wrap svg { position: absolute; top: 12px; left: 12px; width: 17px; height: 17px; color: #9698ac; }
+    .search { width: 100%; height: 41px; padding: 0 12px 0 38px; border: 1px solid #e9eaf2; border-radius: 11px; outline: none; background: #fafaff; color: #282a43; }
+    .search:focus, .field:focus, .editor:focus, .language:focus { border-color: #8f8aed; box-shadow: 0 0 0 3px rgba(113, 104, 232, .11); }
+    .note-list { flex: 1; overflow: auto; }
+    .note-item { width: 100%; padding: 14px 13px; border: 1px solid transparent; border-radius: 13px; background: transparent; color: inherit; text-align: left; }
+    .note-item + .note-item { margin-top: 4px; }
+    .note-item:hover { background: #f8f8ff; }
+    .note-item.active { border-color: #e5e3ff; background: linear-gradient(110deg, #f5f3ff, #f8faff); }
+    .note-item-title { overflow: hidden; color: #32334d; font-size: 14px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .note-item-preview { overflow: hidden; margin-top: 6px; color: #898ba0; font-size: 12px; line-height: 1.5; text-overflow: ellipsis; white-space: nowrap; }
+    .note-item-date { margin-top: 10px; color: #a1a2b2; font-size: 11px; }
+    .empty-list { padding: 28px 12px; color: #9698aa; font-size: 13px; text-align: center; line-height: 1.6; }
+    .editor-panel { display: flex; min-width: 0; flex-direction: column; padding: 30px 36px 26px; }
+    .editor-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+    .editor-label { color: #85879a; font-size: 12px; font-weight: 650; letter-spacing: 1.1px; text-transform: uppercase; }
+    .saved-indicator { display: flex; align-items: center; gap: 7px; color: #9294a8; font-size: 12px; }
+    .saved-dot { width: 7px; height: 7px; border-radius: 50%; background: #48be91; }
+    .field { width: 100%; border: 1px solid transparent; border-radius: 10px; outline: none; color: #252640; transition: border .15s, box-shadow .15s; }
+    .title-input { margin-bottom: 12px; padding: 10px 12px; font-size: clamp(22px, 3vw, 30px); font-weight: 720; letter-spacing: -.8px; }
+    .title-input::placeholder { color: #c3c4d0; }
+    .editor { flex: 1; width: 100%; min-height: 330px; resize: vertical; padding: 14px 13px; border: 1px solid transparent; border-radius: 10px; outline: none; color: #55576d; font-size: 15px; line-height: 1.8; transition: border .15s, box-shadow .15s; }
+    .editor::placeholder { color: #b4b5c4; }
+    .translate-panel { margin-top: 23px; padding: 17px; border: 1px solid #edecf7; border-radius: 15px; background: #fafaff; }
+    .translate-heading { margin: 0 0 12px; color: #65677e; font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
+    .translate-controls { display: flex; gap: 10px; }
+    .language { min-width: 0; flex: 1; padding: 0 12px; border: 1px solid #e7e8f0; border-radius: 10px; outline: none; background: #fff; color: #44465d; }
+    .secondary-button, .danger-button, .primary-button { min-height: 42px; padding: 0 16px; border-radius: 10px; font-size: 13px; font-weight: 650; }
+    .secondary-button { border: 1px solid #e1e0f5; background: #fff; color: #6460c9; }
+    .secondary-button:hover { background: #f4f3ff; }
+    .translate-status { min-height: 0; margin-top: 0; color: #35946e; font-size: 12px; }
+    .translate-status:not(:empty) { margin-top: 10px; padding: 9px 11px; border-radius: 8px; background: #eaf8f1; }
+    .translate-status.error { color: #b34d61; background: #fff0f2; }
+    .editor-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 18px; }
+    .hint { color: #a0a1b0; font-size: 11px; }
+    .actions { display: flex; gap: 9px; }
+    .danger-button { border: 1px solid #f1dfe3; background: #fff; color: #c05d70; }
+    .danger-button:hover { background: #fff5f6; }
+    .primary-button:disabled, .secondary-button:disabled, .danger-button:disabled { cursor: not-allowed; opacity: .5; transform: none; box-shadow: none; }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 2; padding: 12px 16px; border: 1px solid #d8efdf; border-radius: 12px; background: #f0fbf3; color: #328253; box-shadow: 0 12px 30px rgba(39, 72, 50, .12); font-size: 13px; }
+    .toast.error { border-color: #f3dce0; background: #fff3f4; color: #ae4e5e; }
+    @media (max-width: 760px) {
+      .app-shell { width: min(100% - 24px, 620px); padding-top: 24px; }
+      .workspace { grid-template-columns: 1fr; }
+      .sidebar { max-height: 310px; border-right: 0; border-bottom: 1px solid #ececf4; }
+      .editor-panel { min-height: 600px; padding: 24px 18px; }
+    }
+    @media (max-width: 460px) {
+      .app-shell { width: calc(100% - 16px); padding-top: 15px; }
+      .workspace { border-radius: 18px; }
+      .translate-controls { flex-direction: column; }
+      .language { min-height: 42px; }
+      .editor-footer { align-items: flex-start; flex-direction: column; }
+      .actions { width: 100%; }
+      .actions button { flex: 1; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📝 NoteTaker</h1>
-            <p>Organize your thoughts, capture your ideas</p>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10z"/><path d="M13 3v7h7M8 14h8M8 17h6"/></svg>
+        </div>
+        <div>
+          <h1>NoteTaker</h1>
+          <p class="tagline">A little space for all your thoughts</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="workspace" aria-label="Notes workspace">
+      <aside class="sidebar">
+        <div class="sidebar-heading"><h2>Your notes</h2><span class="note-count" id="note-count">0 notes</span></div>
+        <button class="new-button" id="new-note" type="button"><span aria-hidden="true">＋</span> New Note</button>
+        <label class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input class="search" id="search" type="search" placeholder="Search notes..." aria-label="Search notes">
+        </label>
+        <div class="note-list" id="note-list"></div>
+      </aside>
+
+      <section class="editor-panel" aria-label="Note editor">
+        <div class="editor-top">
+          <span class="editor-label">Editor</span>
+          <span class="saved-indicator"><span class="saved-dot"></span><span id="save-state">Ready to write</span></span>
+        </div>
+        <input class="field title-input" id="title" type="text" maxlength="300" placeholder="Untitled note" aria-label="Note title">
+        <textarea class="editor" id="content" placeholder="Start writing your thoughts here...&#10;&#10;Your ideas, plans, and inspiration — all in one place." aria-label="Note content"></textarea>
+
+        <div class="translate-panel">
+          <h2 class="translate-heading">Translate your note</h2>
+          <div class="translate-controls">
+            <select class="language" id="target-lang" aria-label="Target language">
+              <option value="Chinese">Chinese</option>
+              <option value="English">English</option>
+              <option value="Spanish">Spanish</option>
+              <option value="French">French</option>
+              <option value="German">German</option>
+              <option value="Japanese">Japanese</option>
+              <option value="Korean">Korean</option>
+              <option value="Portuguese">Portuguese</option>
+              <option value="Italian">Italian</option>
+              <option value="Arabic">Arabic</option>
+            </select>
+            <button class="secondary-button" id="translate" type="button">Translate</button>
+          </div>
+          <div class="translate-status" id="translate-status" role="status" aria-live="polite"></div>
         </div>
 
-        <div class="main-content">
-            <div class="sidebar">
-                <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search notes...">
-                <button class="new-note-btn" id="newNoteBtn">✨ New Note</button>
-                
-                <div class="notes-list" id="notesList">
-                    <div class="loading">Loading notes...</div>
-                </div>
-            </div>
+        <footer class="editor-footer">
+          <span class="hint">Your notes are saved to your workspace.</span>
+          <div class="actions">
+            <button class="danger-button" id="delete" type="button" disabled>Delete</button>
+            <button class="primary-button" id="save" type="button">Save</button>
+          </div>
+        </footer>
+      </section>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-            <div class="note-editor">
-                <div class="editor-header">
-                    <h2 class="editor-title" id="editorTitle">Select a note to edit</h2>
-                    <div class="editor-actions" id="editorActions" style="display: none;">
-                        <select class="target-language" id="targetLanguage" aria-label="Target language">
-                            <option value="Chinese">Chinese</option>
-                            <option value="English">English</option>
-                            <option value="Japanese">Japanese</option>
-                            <option value="Korean">Korean</option>
-                            <option value="French">French</option>
-                            <option value="Spanish">Spanish</option>
-                        </select>
-                        <button class="btn btn-translate" id="translateBtn" type="button">Translate</button>
-                        <button class="btn btn-save" id="saveBtn">💾 Save</button>
-                        <button class="btn btn-delete" id="deleteBtn">🗑️ Delete</button>
-                    </div>
-                </div>
+  <script>
+    const elements = {
+      list: document.querySelector("#note-list"),
+      count: document.querySelector("#note-count"),
+      search: document.querySelector("#search"),
+      title: document.querySelector("#title"),
+      content: document.querySelector("#content"),
+      language: document.querySelector("#target-lang"),
+      translateStatus: document.querySelector("#translate-status"),
+      saveState: document.querySelector("#save-state"),
+      save: document.querySelector("#save"),
+      remove: document.querySelector("#delete"),
+      translate: document.querySelector("#translate"),
+      toast: document.querySelector("#toast")
+    };
+    let notes = [];
+    let selectedId = null;
+    let toastTimer;
 
-                <div id="messageArea"></div>
+    function showToast(message, isError = false) {
+      window.clearTimeout(toastTimer);
+      elements.toast.textContent = message;
+      elements.toast.classList.toggle("error", isError);
+      elements.toast.hidden = false;
+      toastTimer = window.setTimeout(() => { elements.toast.hidden = true; }, 2600);
+    }
 
-                <div id="editorForm" style="display: none;">
-                    <div class="form-group">
-                        <label class="form-label" for="noteTitle">Title</label>
-                        <input type="text" class="form-input" id="noteTitle" placeholder="Enter note title...">
-                    </div>
+    async function api(path, options = {}) {
+      const response = await fetch(`/api${path}`, {
+        ...options,
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) }
+      });
+      const data = response.status === 204 ? null : await response.json();
+      if (!response.ok) throw new Error(data?.error || `Request failed (${response.status})`);
+      return data;
+    }
 
-                    <div class="form-group">
-                        <label class="form-label" for="noteContent">Content</label>
-                        <textarea class="form-textarea" id="noteContent" placeholder="Start writing your note..."></textarea>
-                    </div>
-                </div>
+    function formatDate(value) {
+      if (!value) return "";
+      return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(value));
+    }
 
-                <div class="empty-state" id="emptyState">
-                    <h3>Welcome to NoteTaker!</h3>
-                    <p>Select an existing note or create a new one to get started.</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    function renderList() {
+      const search = elements.search.value.trim().toLocaleLowerCase();
+      const visible = notes.filter(note => `${note.title} ${note.content}`.toLocaleLowerCase().includes(search));
+      elements.count.textContent = `${notes.length} ${notes.length === 1 ? "note" : "notes"}`;
+      elements.list.replaceChildren();
+      if (!visible.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-list";
+        empty.textContent = search ? "No notes match your search." : "No notes yet. Create one to get started.";
+        elements.list.append(empty);
+        return;
+      }
 
-    <script>
-        class NoteTaker {
-            constructor() {
-                this.notes = [];
-                this.currentNote = null;
-                this.isLoading = false;
-                this.init();
-            }
+      for (const note of visible) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `note-item${note.id === selectedId ? " active" : ""}`;
+        const title = document.createElement("div");
+        title.className = "note-item-title";
+        title.textContent = note.title || "Untitled note";
+        const preview = document.createElement("div");
+        preview.className = "note-item-preview";
+        preview.textContent = note.content || "No additional text";
+        const date = document.createElement("div");
+        date.className = "note-item-date";
+        date.textContent = formatDate(note.updated_at);
+        button.append(title, preview, date);
+        button.addEventListener("click", () => selectNote(note));
+        elements.list.append(button);
+      }
+    }
 
-            async init() {
-                this.bindEvents();
-                await this.loadNotes();
-            }
+    function selectNote(note) {
+      selectedId = note.id;
+      elements.title.value = note.title;
+      elements.content.value = note.content;
+      elements.remove.disabled = false;
+      elements.saveState.textContent = "Saved";
+      elements.translateStatus.textContent = "";
+      elements.translateStatus.classList.remove("error");
+      renderList();
+    }
 
-            bindEvents() {
-                document.getElementById('newNoteBtn').addEventListener('click', () => this.createNewNote());
-                document.getElementById('saveBtn').addEventListener('click', () => this.saveNote());
-                document.getElementById('translateBtn').addEventListener('click', () => this.translateNote());
-                document.getElementById('deleteBtn').addEventListener('click', () => this.deleteNote());
-                document.getElementById('searchBox').addEventListener('input', (e) => this.searchNotes(e.target.value));
-                
-                // Auto-save on content change (debounced)
-                let saveTimeout;
-                const autoSave = () => {
-                    clearTimeout(saveTimeout);
-                    saveTimeout = setTimeout(() => {
-                        if (this.currentNote && this.currentNote.id) {
-                            this.saveNote(true);
-                        }
-                    }, 2000);
-                };
-                
-                document.getElementById('noteTitle').addEventListener('input', autoSave);
-                document.getElementById('noteContent').addEventListener('input', autoSave);
-            }
+    function newNote() {
+      selectedId = null;
+      elements.title.value = "";
+      elements.content.value = "";
+      elements.remove.disabled = true;
+      elements.saveState.textContent = "New note";
+      elements.translateStatus.textContent = "";
+      elements.translateStatus.classList.remove("error");
+      renderList();
+      elements.title.focus();
+    }
 
-            async loadNotes() {
-                this.isLoading = true;
-                this.showMessage('Loading notes...', 'loading');
-                
-                try {
-                    const response = await fetch('/api/notes');
-                    if (!response.ok) throw new Error('Failed to load notes');
-                    
-                    this.notes = await response.json();
-                    this.renderNotesList();
-                    this.hideMessage();
-                } catch (error) {
-                    this.showMessage(`Error loading notes: ${error.message}`, 'error');
-                } finally {
-                    this.isLoading = false;
-                }
-            }
+    async function loadNotes() {
+      try {
+        notes = await api("/notes");
+        renderList();
+      } catch (error) {
+        showToast(error.message, true);
+      }
+    }
 
-            renderNotesList() {
-                const notesList = document.getElementById('notesList');
-                
-                if (this.notes.length === 0) {
-                    notesList.innerHTML = '<div class="empty-state"><p>No notes yet. Create your first note!</p></div>';
-                    return;
-                }
+    async function saveNote() {
+      const payload = { title: elements.title.value, content: elements.content.value };
+      elements.save.disabled = true;
+      try {
+        const saved = await api(selectedId === null ? "/notes" : `/notes/${selectedId}`, {
+          method: selectedId === null ? "POST" : "PUT",
+          body: JSON.stringify(payload)
+        });
+        selectedId = saved.id;
+        const existingIndex = notes.findIndex(note => note.id === saved.id);
+        if (existingIndex === -1) notes.unshift(saved);
+        else notes[existingIndex] = saved;
+        elements.remove.disabled = false;
+        elements.saveState.textContent = "Saved";
+        renderList();
+        showToast("Note saved");
+      } catch (error) {
+        showToast(error.message, true);
+      } finally {
+        elements.save.disabled = false;
+      }
+    }
 
-                notesList.innerHTML = this.notes.map(note => `
-                    <div class="note-item ${this.currentNote && this.currentNote.id === note.id ? 'active' : ''}" 
-                         data-note-id="${note.id}" onclick="noteTaker.selectNote(${note.id})">
-                        <div class="note-title">${this.escapeHtml(note.title || 'Untitled')}</div>
-                        <div class="note-preview">${this.escapeHtml(note.content || 'No content')}</div>
-                        <div class="note-date">${this.formatDate(note.updated_at)}</div>
-                    </div>
-                `).join('');
-            }
+    async function deleteNote() {
+      if (selectedId === null || !window.confirm("Delete this note? This cannot be undone.")) return;
+      elements.remove.disabled = true;
+      try {
+        await api(`/notes/${selectedId}`, { method: "DELETE" });
+        notes = notes.filter(note => note.id !== selectedId);
+        newNote();
+        showToast("Note deleted");
+      } catch (error) {
+        elements.remove.disabled = false;
+        showToast(error.message, true);
+      }
+    }
 
-            async selectNote(noteId) {
-                const note = this.notes.find(n => n.id === noteId);
-                if (!note) return;
+    async function translateNote() {
+      elements.translate.disabled = true;
+      elements.translate.textContent = "Translating…";
+      elements.translateStatus.classList.remove("error");
+      elements.translateStatus.textContent = "Translating your note…";
+      try {
+        const translated = await api("/notes/translate", {
+          method: "POST",
+          body: JSON.stringify({
+            title: elements.title.value,
+            content: elements.content.value,
+            target_lang: elements.language.value
+          })
+        });
+        elements.title.value = translated.title;
+        elements.content.value = translated.content;
+        elements.saveState.textContent = "Unsaved changes";
+        elements.translateStatus.textContent = "Translation ready — save when you’re happy with it.";
+      } catch (error) {
+        elements.translateStatus.textContent = error.message;
+        elements.translateStatus.classList.add("error");
+      } finally {
+        elements.translate.disabled = false;
+        elements.translate.textContent = "Translate";
+      }
+    }
 
-                this.currentNote = note;
-                this.showEditor();
-                this.renderNotesList(); // Re-render to update active state
-                
-                document.getElementById('noteTitle').value = note.title || '';
-                document.getElementById('noteContent').value = note.content || '';
-                document.getElementById('editorTitle').textContent = note.title || 'Untitled Note';
-            }
-
-            createNewNote() {
-                this.currentNote = {
-                    id: null,
-                    title: '',
-                    content: '',
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                };
-                
-                this.showEditor();
-                document.getElementById('noteTitle').value = '';
-                document.getElementById('noteContent').value = '';
-                document.getElementById('editorTitle').textContent = 'New Note';
-                document.getElementById('noteTitle').focus();
-                
-                // Remove active state from all notes
-                document.querySelectorAll('.note-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-            }
-
-            showEditor() {
-                document.getElementById('emptyState').style.display = 'none';
-                document.getElementById('editorForm').style.display = 'block';
-                document.getElementById('editorActions').style.display = 'flex';
-            }
-
-            hideEditor() {
-                document.getElementById('emptyState').style.display = 'block';
-                document.getElementById('editorForm').style.display = 'none';
-                document.getElementById('editorActions').style.display = 'none';
-                document.getElementById('editorTitle').textContent = 'Select a note to edit';
-                this.currentNote = null;
-            }
-
-            async saveNote(isAutoSave = false) {
-                if (!this.currentNote) return;
-
-                const title = document.getElementById('noteTitle').value.trim();
-                const content = document.getElementById('noteContent').value.trim();
-
-                if (!title && !content) {
-                    if (!isAutoSave) {
-                        this.showMessage('Please enter a title or content', 'error');
-                    }
-                    return;
-                }
-
-                try {
-                    const noteData = {
-                        title: title || 'Untitled',
-                        content: content
-                    };
-
-                    let response;
-                    if (this.currentNote.id) {
-                        // Update existing note
-                        response = await fetch(`/api/notes/${this.currentNote.id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(noteData)
-                        });
-                    } else {
-                        // Create new note
-                        response = await fetch('/api/notes', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(noteData)
-                        });
-                    }
-
-                    if (!response.ok) throw new Error('Failed to save note');
-
-                    const savedNote = await response.json();
-                    this.currentNote = savedNote;
-                    
-                    // Update notes list
-                    const existingIndex = this.notes.findIndex(n => n.id === savedNote.id);
-                    if (existingIndex >= 0) {
-                        this.notes[existingIndex] = savedNote;
-                    } else {
-                        this.notes.unshift(savedNote);
-                    }
-                    
-                    this.renderNotesList();
-                    document.getElementById('editorTitle').textContent = savedNote.title;
-                    
-                    if (!isAutoSave) {
-                        this.showMessage('Note saved successfully!', 'success');
-                    }
-                } catch (error) {
-                    this.showMessage(`Error saving note: ${error.message}`, 'error');
-                }
-            }
-
-            async translateNote() {
-                if (!this.currentNote) return;
-
-                const translateButton = document.getElementById('translateBtn');
-                translateButton.disabled = true;
-                this.showMessage('Translating note...', 'loading');
-
-                try {
-                    const response = await fetch('/api/notes/translate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            title: document.getElementById('noteTitle').value,
-                            content: document.getElementById('noteContent').value,
-                            target_lang: document.getElementById('targetLanguage').value
-                        })
-                    });
-                    const responseText = await response.text();
-                    let result;
-                    try {
-                        result = JSON.parse(responseText);
-                    } catch {
-                        const contentType = response.headers.get('content-type') || 'unknown content type';
-                        const preview = this.escapeHtml(responseText.trim().slice(0, 180));
-                        throw new Error(`HTTP ${response.status} (${contentType}): ${preview || 'Empty response'}`);
-                    }
-                    if (!response.ok) throw new Error(result.error || 'Failed to translate note');
-
-                    document.getElementById('noteTitle').value = result.title;
-                    document.getElementById('noteContent').value = result.content;
-                    document.getElementById('editorTitle').textContent = result.title || 'Untitled Note';
-                    this.showMessage('Translation filled in. Save to keep these changes.', 'success');
-                } catch (error) {
-                    this.showMessage(`Error translating note: ${error.message}`, 'error');
-                } finally {
-                    translateButton.disabled = false;
-                }
-            }
-
-            async deleteNote() {
-                if (!this.currentNote || !this.currentNote.id) return;
-
-                if (!confirm('Are you sure you want to delete this note?')) return;
-
-                try {
-                    const response = await fetch(`/api/notes/${this.currentNote.id}`, {
-                        method: 'DELETE'
-                    });
-
-                    if (!response.ok) throw new Error('Failed to delete note');
-
-                    // Remove from notes array
-                    this.notes = this.notes.filter(n => n.id !== this.currentNote.id);
-                    this.renderNotesList();
-                    this.hideEditor();
-                    this.showMessage('Note deleted successfully!', 'success');
-                } catch (error) {
-                    this.showMessage(`Error deleting note: ${error.message}`, 'error');
-                }
-            }
-
-            searchNotes(query) {
-                const filteredNotes = query.trim() === '' ? this.notes : 
-                    this.notes.filter(note => 
-                        (note.title && note.title.toLowerCase().includes(query.toLowerCase())) ||
-                        (note.content && note.content.toLowerCase().includes(query.toLowerCase()))
-                    );
-
-                const notesList = document.getElementById('notesList');
-                if (filteredNotes.length === 0) {
-                    notesList.innerHTML = '<div class="empty-state"><p>No notes found matching your search.</p></div>';
-                    return;
-                }
-
-                notesList.innerHTML = filteredNotes.map(note => `
-                    <div class="note-item ${this.currentNote && this.currentNote.id === note.id ? 'active' : ''}" 
-                         data-note-id="${note.id}" onclick="noteTaker.selectNote(${note.id})">
-                        <div class="note-title">${this.escapeHtml(note.title || 'Untitled')}</div>
-                        <div class="note-preview">${this.escapeHtml(note.content || 'No content')}</div>
-                        <div class="note-date">${this.formatDate(note.updated_at)}</div>
-                    </div>
-                `).join('');
-            }
-
-            showMessage(message, type) {
-                const messageArea = document.getElementById('messageArea');
-                messageArea.innerHTML = `<div class="${type}">${message}</div>`;
-                
-                if (type === 'success') {
-                    setTimeout(() => this.hideMessage(), 3000);
-                }
-            }
-
-            hideMessage() {
-                document.getElementById('messageArea').innerHTML = '';
-            }
-
-            escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
-
-            formatDate(dateString) {
-                const date = new Date(dateString);
-                const now = new Date();
-                const diffTime = Math.abs(now - date);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays === 1) {
-                    return 'Today';
-                } else if (diffDays === 2) {
-                    return 'Yesterday';
-                } else if (diffDays <= 7) {
-                    return `${diffDays - 1} days ago`;
-                } else {
-                    return date.toLocaleDateString();
-                }
-            }
-        }
-
-        // Initialize the app
-        const noteTaker = new NoteTaker();
-    </script>
+    elements.title.addEventListener("input", () => { elements.saveState.textContent = "Unsaved changes"; });
+    elements.content.addEventListener("input", () => { elements.saveState.textContent = "Unsaved changes"; });
+    elements.search.addEventListener("input", renderList);
+    document.querySelector("#new-note").addEventListener("click", newNote);
+    elements.save.addEventListener("click", saveNote);
+    elements.remove.addEventListener("click", deleteNote);
+    elements.translate.addEventListener("click", translateNote);
+    loadNotes();
+  </script>
 </body>
 </html>

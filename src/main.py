@@ -1,69 +1,53 @@
 import os
-import sys
+from pathlib import Path
 
-# DON'T CHANGE THIS !!!
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-from flask import Flask, send_from_directory
+from dotenv import load_dotenv
+from flask import Flask, abort, send_from_directory
 from flask_cors import CORS
-from src.models.user import db
-from src.routes.user import user_bp
-from src.routes.note import note_bp, translate_note
-from src.models.note import Note
 
-app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
+from src.extensions import db
 
-app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
+ROOT_DIR = Path(__file__).resolve().parent.parent
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
-# Enable CORS for all routes
-CORS(app)
+load_dotenv(ROOT_DIR / ".env")
 
-# register blueprints
-app.register_blueprint(user_bp, url_prefix='/api')
-app.register_blueprint(note_bp, url_prefix='/api')
-# Vercel's rewrite can deliver requests to the function URL without restoring
-# the original /api/notes/translate path.
-app.add_url_rule(
-    '/api/index.py',
-    endpoint='vercel_translation_fallback',
-    view_func=translate_note,
-    methods=['POST'],
-)
-
-# 针对 Vercel Serverless 只读文件系统重定向数据库路径
-if os.environ.get('VERCEL'):
-    DB_PATH = '/tmp/app.db'
+app = Flask(__name__)
+if os.environ.get("VERCEL"):
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/app.db"
 else:
-    ROOT_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    DB_PATH = os.path.join(ROOT_DIR, 'database', 'app.db')
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    database_dir = ROOT_DIR / "database"
+    database_dir.mkdir(parents=True, exist_ok=True)
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{database_dir / 'app.db'}"
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_PATH}"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# 初始化数据库绑定并自动建表
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+from src.models.note import Note  # noqa: E402,F401
+from src.models.user import User  # noqa: E402,F401
+from src.routes.note import note_bp  # noqa: E402
+
+app.register_blueprint(note_bp, url_prefix="/api")
+
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_frontend(path: str):
+    if path == "api" or path.startswith("api/"):
+        abort(404)
+
+    if path:
+        requested_file = STATIC_DIR / path
+        if requested_file.is_file():
+            return send_from_directory(STATIC_DIR, path)
+
+    return send_from_directory(STATIC_DIR, "index.html")
+
+
 with app.app_context():
-    try:
-        db.create_all()
-    except Exception as e:
-        print(f"Database init error: {e}")
-
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    static_folder_path = app.static_folder
-    if static_folder_path is None:
-        return "Static folder not configured", 404 
-    if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
-        return send_from_directory(static_folder_path, path)
-    else:
-        index_path = os.path.join(static_folder_path, 'index.html')
-        if os.path.exists(index_path):
-            return send_from_directory(static_folder_path, 'index.html')
-        else:
-            return "index.html not found", 404
+    db.create_all()
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+if __name__ == "__main__":
+    app.run(debug=os.environ.get("FLASK_DEBUG") == "1")

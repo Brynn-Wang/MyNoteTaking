@@ -1,25 +1,8 @@
 {
-  "functions": {
-    "api/notes/translate.py": {
-      "includeFiles": "prompts/translate_prompt.md"
-    }
-  },
   "rewrites": [
     {
-      "source": "/api/notes/translate",
-      "destination": "/api/notes/translate.py"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/index.py?__original_path=/api/:path*"
-    },
-    {
-      "source": "/",
-      "destination": "/api/index.py?__original_path=/"
-    },
-    {
-      "source": "/:path*",
-      "destination": "/api/index.py?__original_path=/:path*"
+      "source": "/(.*)",
+      "destination": "/api/index.py"
     }
   ]
 }
