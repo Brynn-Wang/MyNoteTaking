@@ -8,7 +8,7 @@ from flask import Flask, send_from_directory
 from flask_cors import CORS
 from src.models.user import db
 from src.routes.user import user_bp
-from src.routes.note import note_bp
+from src.routes.note import note_bp, translate_note
 from src.models.note import Note
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
@@ -21,6 +21,14 @@ CORS(app)
 # register blueprints
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(note_bp, url_prefix='/api')
+# Vercel's rewrite can deliver requests to the function URL without restoring
+# the original /api/notes/translate path.
+app.add_url_rule(
+    '/api/index.py',
+    endpoint='vercel_translation_fallback',
+    view_func=translate_note,
+    methods=['POST'],
+)
 
 # 针对 Vercel Serverless 只读文件系统重定向数据库路径
 if os.environ.get('VERCEL'):
