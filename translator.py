@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from pathlib import Path
@@ -27,6 +28,22 @@ def llm_generate(user_prompt, target_lang="Chinese"):
         response_format={"type": "json_object"},
     )
     return response.choices[0].message.content.strip()
+
+
+def translate_note_content(title, content, target_lang="Chinese"):
+    result = llm_generate(
+        json.dumps({"title": title, "content": content}, ensure_ascii=False),
+        target_lang,
+    )
+    translated = json.loads(result)
+    if (
+        not isinstance(translated, dict)
+        or not isinstance(translated.get("title"), str)
+        or not isinstance(translated.get("content"), str)
+    ):
+        raise ValueError("Translation response must contain string title and content fields")
+    return {"title": translated["title"], "content": translated["content"]}
+
 
 if __name__ == "__main__":
     test_text = sys.argv[1] if len(sys.argv) > 1 else "How are you?"

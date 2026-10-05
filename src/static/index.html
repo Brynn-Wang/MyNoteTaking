@@ -443,22 +443,12 @@
                 document.getElementById('noteContent').addEventListener('input', autoSave);
             }
 
-            apiFetch(path, options = {}) {
-                return fetch(path, {
-                    ...options,
-                    headers: {
-                        ...options.headers,
-                        'X-NoteTaker-Path': path
-                    }
-                });
-            }
-
             async loadNotes() {
                 this.isLoading = true;
                 this.showMessage('Loading notes...', 'loading');
                 
                 try {
-                    const response = await this.apiFetch('/api/notes');
+                    const response = await fetch('/api/notes');
                     if (!response.ok) throw new Error('Failed to load notes');
                     
                     this.notes = await response.json();
@@ -559,14 +549,14 @@
                     let response;
                     if (this.currentNote.id) {
                         // Update existing note
-                        response = await this.apiFetch(`/api/notes/${this.currentNote.id}`, {
+                        response = await fetch(`/api/notes/${this.currentNote.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(noteData)
                         });
                     } else {
                         // Create new note
-                        response = await this.apiFetch('/api/notes', {
+                        response = await fetch('/api/notes', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(noteData)
@@ -605,7 +595,7 @@
                 this.showMessage('Translating note...', 'loading');
 
                 try {
-                    const response = await this.apiFetch('/api/notes/translate', {
+                    const response = await fetch('/api/notes/translate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -642,7 +632,7 @@
                 if (!confirm('Are you sure you want to delete this note?')) return;
 
                 try {
-                    const response = await this.apiFetch(`/api/notes/${this.currentNote.id}`, {
+                    const response = await fetch(`/api/notes/${this.currentNote.id}`, {
                         method: 'DELETE'
                     });
 

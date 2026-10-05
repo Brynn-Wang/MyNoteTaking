@@ -8,6 +8,7 @@ A modern, responsive web application for managing personal notes with a beautifu
 - **Edit Notes**: Update existing notes with real-time editing
 - **Delete Notes**: Remove notes you no longer need
 - **Search Notes**: Find notes quickly by searching titles and content
+- **Translate Notes**: Translate a note's title and content into a selected language
 - **Auto-save**: Notes are automatically saved as you type
 - **Responsive Design**: Works perfectly on desktop and mobile devices
 - **Modern UI**: Beautiful gradient design with smooth animations
@@ -129,6 +130,7 @@ Translation request body:
 ### Editor Panel
 - **Title Input**: Edit note titles
 - **Content Textarea**: Rich text editing area
+- **Translation Controls**: Choose a target language and translate the current note
 - **Save Button**: Manual save option (auto-save also available)
 - **Delete Button**: Remove notes with confirmation
 - **Real-time Updates**: Changes reflected immediately
@@ -167,6 +169,8 @@ The application is configured for easy deployment with:
 - `FLASK_ENV`: Set to `development` for debug mode
 - `SECRET_KEY`: Flask secret key for sessions
 - `OPENROUTER_API_KEY`: OpenRouter API key required for note translation
+
+Translation prompts are stored in `prompts/translate_prompt.md`. Configure `OPENROUTER_API_KEY` in the deployment environment for translation to work on Vercel.
 
 ### Database Configuration
 - Database file: `src/database/app.db`
@@ -216,4 +220,3 @@ Potential improvements for future versions:
 ---
 
 **Built with ❤️ using Flask, SQLite, and modern web technologies**
-
