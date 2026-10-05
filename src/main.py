@@ -1,5 +1,6 @@
 import os
 import sys
+
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
@@ -12,14 +13,6 @@ from src.models.note import Note
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
-# Ensure tables exist in Serverless environment
-with app.app_context():
-    try:
-        from models.note import db
-        db.create_all()
-    except Exception as e:
-        pass
-
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
 # Enable CORS for all routes
@@ -28,31 +21,32 @@ CORS(app)
 # register blueprints
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(note_bp, url_prefix='/api')
-# configure database to use repository-root `database/app.db`
-ROOT_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-DB_PATH = os.path.join(ROOT_DIR, 'database', 'app.db')
-# ensure database directory exists
 
+# 针对 Vercel Serverless 只读文件系统重定向数据库路径
 if os.environ.get('VERCEL'):
-    DB_DIR = '/tmp'
     DB_PATH = '/tmp/app.db'
 else:
-    DB_DIR = os.path.dirname(DB_PATH)
-    os.makedirs(DB_DIR, exist_ok=True)
-
+    ROOT_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    DB_PATH = os.path.join(ROOT_DIR, 'database', 'app.db')
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_PATH}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# 初始化数据库绑定并自动建表
 db.init_app(app)
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"Database init error: {e}")
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
     static_folder_path = app.static_folder
     if static_folder_path is None:
-            return "Static folder not configured", 404
+        return "Static folder not configured", 404
 
     if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
         return send_from_directory(static_folder_path, path)
