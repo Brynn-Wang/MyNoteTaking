@@ -1,7 +1,32 @@
 from flask import Blueprint, jsonify, request
 from src.models.note import Note, db
+import json
+from translator import llm_generate
 
 note_bp = Blueprint('note', __name__)
+
+@note_bp.route('/notes/translate', methods=['POST'])
+def translate_note():
+    """Translate a note title and content without saving it."""
+    data = request.get_json(silent=True)
+    if not data or not isinstance(data.get('title'), str) or not isinstance(data.get('content'), str):
+        return jsonify({'error': 'Title and content are required'}), 400
+
+    target_lang = data.get('target_lang', 'Chinese')
+    if not isinstance(target_lang, str) or not target_lang.strip():
+        return jsonify({'error': 'Target language is required'}), 400
+
+    try:
+        result = llm_generate(
+            json.dumps({'title': data['title'], 'content': data['content']}, ensure_ascii=False),
+            target_lang.strip(),
+        )
+        translated = json.loads(result)
+        if not isinstance(translated, dict) or not isinstance(translated.get('title'), str) or not isinstance(translated.get('content'), str):
+            raise ValueError('Translation response must contain string title and content fields')
+        return jsonify({'title': translated['title'], 'content': translated['content']})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 502
 
 @note_bp.route('/notes', methods=['GET'])
 def get_notes():

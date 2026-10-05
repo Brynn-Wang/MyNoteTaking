@@ -96,6 +96,16 @@ notetaking-app/
 - `PUT /api/notes/<id>` - Update a note
 - `DELETE /api/notes/<id>` - Delete a note
 - `GET /api/notes/search?q=<query>` - Search notes
+- `POST /api/notes/translate` - Translate a note title and content
+
+Translation request body:
+```json
+{
+   "title": "My note",
+   "content": "Text to translate",
+   "target_lang": "Chinese"
+}
+```
 
 ### Request/Response Format
 ```json
@@ -156,6 +166,7 @@ The application is configured for easy deployment with:
 ### Environment Variables
 - `FLASK_ENV`: Set to `development` for debug mode
 - `SECRET_KEY`: Flask secret key for sessions
+- `OPENROUTER_API_KEY`: OpenRouter API key required for note translation
 
 ### Database Configuration
 - Database file: `src/database/app.db`
