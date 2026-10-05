@@ -11,6 +11,15 @@ from src.routes.note import note_bp
 from src.models.note import Note
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
+
+# Ensure tables exist in Serverless environment
+with app.app_context():
+    try:
+        from models.note import db
+        db.create_all()
+    except Exception as e:
+        pass
+
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
 # Enable CORS for all routes
