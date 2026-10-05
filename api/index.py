@@ -1,6 +1,6 @@
 import sys
 import os
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 # 将 src 目录加入 Python 寻址路径
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -16,6 +16,10 @@ class VercelPathMiddleware:
         self.wsgi_app = wsgi_app
 
     def _get_request_path(self, environ):
+        original_path = parse_qs(environ.get('QUERY_STRING', '')).get('__original_path', [None])[0]
+        if original_path and original_path.startswith('/') and not original_path.startswith('//'):
+            return original_path
+
         for key in ('HTTP_X_NOTETAKER_PATH', 'HTTP_X_ORIGINAL_URI', 'HTTP_X_FORWARDED_URI', 'HTTP_X_MATCHED_PATH', 'RAW_URI', 'REQUEST_URI'):
             value = environ.get(key)
             if not value:
